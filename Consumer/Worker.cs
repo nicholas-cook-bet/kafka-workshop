@@ -1,9 +1,20 @@
+using Confluent.Kafka;
+
 namespace Consumer;
 
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
 
+    // Kafka stuff
+    ConsumerConfig _consumerConfig = new ConsumerConfig
+    {
+        BootstrapServers = "127.0.0.1:29092",
+        GroupId = "my-consumer-group",
+        AutoOffsetReset = AutoOffsetReset.Earliest,
+        EnableAutoCommit = false
+    };
+    
     public Worker(ILogger<Worker> logger)
     {
         _logger = logger;
@@ -13,8 +24,19 @@ public class Worker : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-            await Task.Delay(1000, stoppingToken);
+            using (var consumer = new ConsumerBuilder<string, string>(_consumerConfig).Build())
+            {
+                consumer.Subscribe("weather");
+
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    var consumeResult = consumer.Consume(stoppingToken);
+                    _logger.LogInformation(consumeResult.Message.Value);
+                    consumer.Commit(consumeResult);
+                }
+
+                consumer.Close();
+            }
         }
     }
 }
