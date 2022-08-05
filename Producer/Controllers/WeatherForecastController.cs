@@ -49,7 +49,6 @@ public class WeatherForecastController : ControllerBase
             var message = new Message<string, string> { Key = DateTime.Now.ToString("yyyyMMddHHmmss"), Value = json };
 
             var deliveryResult = await producer.ProduceAsync("weather", message);
-
             return deliveryResult.Status.ToString();
         }
     }

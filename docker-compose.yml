@@ -38,28 +38,6 @@ services:
     networks:
       - public
 
-  cockroach:
-    image: ghcr.io/bet01/cockroach_ci_image:master
-    container_name: cockroachdb
-    hostname: cockroach_node_1
-    depends_on:
-      - kafka
-    environment:
-      RUN_SQL_AFTER_BOOT: "SET CLUSTER SETTING cluster.organization = '$BET_COCKROACHDB_ORG';
-        SET CLUSTER SETTING enterprise.license = '$BET_COCKROACHDB_LICENSE';
-        SET CLUSTER SETTING kv.rangefeed.enabled = true;
-        CREATE DATABASE betstrike;"
-        ## existence of betstrike is used to synchronise startup,
-        ## make sure it's created in the last statement
-    ports:
-      - 26257:26257
-      - 8081:8080
-    mem_limit: 512m
-    mem_reservation: 128M
-    cpus: 0.5
-    networks:
-      - public
-
 networks:
   public:
     driver: bridge
